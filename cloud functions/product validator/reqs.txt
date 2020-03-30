@@ -1,0 +1,4 @@
+mandrill==1.0.59
+ShopifyAPI==6.0.0
+requests==2.22.0
+google-cloud-error-reporting==0.33.0

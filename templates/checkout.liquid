@@ -1,0 +1,10 @@
+{% assign order = checkout.order %}
+<p style="color: #d40100; font-size: 1.1em; margin-top: 20px">Please check your email: <span style="font-weight: 550;text-decoration: underline;">{{ checkout.email }} .</span>
+ We sent you the instructions on how to access <span style="text-decoration: underline;">{{ order.line_items[0].product.title }} </span>hosted <a href={{ order.line_items[0].product.tags[0] }} target="_blank">here.</a></p>
+<p style="color: #d40100; font-size: 1.1em; margin-top: 20px"> If this is your first time on <a href={{ order.line_items[0].product.tags[0] }} target="_blank">{{ order.line_items[0].product.tags[0] }}</a> you should 
+receive password reset instruction in your email.
+<p style="color: #d40100; font-size: 1.1em; margin-top: 20px"> You can login to <a href={{ order.line_items[0].product.tags[0] }} target="_blank">{{ order.line_items[0].product.tags[0] }}</a> using: 
+<ul style="list-style-type:disc; margin-left: 35px;font-size: 1.1em; color:#000">
+    <li style="margin-top: 6px;"><span style="text-decoration: underline; font-weight: 600">{{ checkout.email }}</span> as your username </li>
+    <li style="margin-top: 6px;"> The password you chose during the password reset </li>
+</ul>
