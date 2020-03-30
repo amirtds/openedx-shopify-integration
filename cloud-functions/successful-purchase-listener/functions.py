@@ -90,11 +90,15 @@ def email_notifier(msg, subject, store_admin_email="", store_admin_name=""):
 # 3. Register the user in Tahoe
 def register_in_tahoe(request):
     """
-        This function gets customer's info from Shopify request,
-        Product info from Shopify. Makes a request to users api
-        and check if the customer email already exist in Tahoe site users.
-        If not it makes user info based on webhook request and makes a request
-        to registration api to register the user in Tahoe Site
+     This function registers a user in Tahoe site in case the user is not
+     already registered. To do that we get the necessary info from the request
+     object coming from shopify_call_validator, this request contains
+     important data like Tahoe site url and user's data. First we make
+     a request to tahoe_users_api and create a list of all existing users.
+     If the email in request object already exists in tahoe_users_api response
+     we ignore user registration if not we create a username based on
+     the email and sending email, fullname and username to
+     tahoe_registration_api
     """
     logging.info("Start registering user")
     logging.info(request)
@@ -168,6 +172,14 @@ def register_in_tahoe(request):
 
 # 4. Enroll the user in the course
 def enroll_in_course(request):
+    """
+    This function is in charge of enrolling a user in a course in Tahoe site.
+    first we make a request to tahoe_courses_api to get a list of all
+    existing courses in specific Tahoe site, next we check if Shopify product
+    SKU is valid course-id and it exist in tahoe_courses_api response
+    if yes we make a call to tahoe_enrollment_api with learner's info to
+    enroll him/her in that course
+    """
     logging.info("Start Enrolling")
     # 4.1 Make sure the course exist
     info = get_info(request)

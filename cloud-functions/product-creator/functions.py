@@ -31,7 +31,7 @@ except Exception as e:
 
 def get_tahoe_courses():
     """
-    Get a list of all courses from Tahoe Courses API from one or more sites \\
+    Get a list of all courses from Tahoe Courses API from one or more sites
     and create a list of shopify products based on existing courses and their
     metadata in Tahoe
     """
