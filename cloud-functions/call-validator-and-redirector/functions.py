@@ -15,7 +15,7 @@ from google.cloud import error_reporting
 shopify_topics_handler = {
     "orders/paid": "https://us-central1-appsembler-tahoe-0.cloudfunctions.net/test_successful_purchase_listener",
     "products/create": "https://us-central1-appsembler-tahoe-0.cloudfunctions.net/test_shopify_product_validator",
-    "products/update": "https://us-central1-appsembler-tahoe-0.cloudfunctions.net/test_shopify_product_validator"
+    "products/update": "https://us-central1-appsembler-tahoe-0.cloudfunctions.net/test_shopify_product_validator",
 }
 shopify_secret = environ.get("shopify_secret", "")
 shopify_store_url = environ.get("shopify_store_url", "")
@@ -38,19 +38,23 @@ def verify_webhook(data, hmac_header):
 
 def call_validator(request):
     """
-    This function recieves a call from shopify when user makes a paid
-    transaction in the store or shopify admin creates or updates a product in
-    store. First step is to validate a call by
-    1- making sure the signature is valid
-    2- call is coming from the store and not from unauthorized caller
-    3- if the call made by product purchase we need to make sure the request
+    This function receives a call from Shopify when an end-user makes
+    a paid transaction in the store or Shopify admin creates or updates
+    a product in the store. Steps to validate the call are
+    1- Making sure the signature is valid
+    2- Check if the call is coming from the store and not from
+    unauthorized caller
+    3- If the call made during product purchase, Make sure the request
     contains necessary data for us to register and enroll the user in Tahoe
-    After validation is done we send the request object to internal google
-    functions to take action.
-    In this function we need to return 200 in any case, because shopify waits
-    for 5 seconds to recieve a 200 ack from us and if they don't recieve it
-    they keep making a call to the function because they assume we didn't
-    recieve the call
+    After validation is done and the call is valid, we trigger proper
+    Cloud functions with the request object. if the original call happened
+    after successful purchase we trigger successful_purchase_listener and if
+    the original call happened because fo product creation or update in Shopify
+    we trigger shopify_product_validator. shopify_call_validator execution
+    ends by sending a 200 response to Shopify. The reason is Shopify waits
+    for 5 seconds to receive a 200 ack from us and if they don't receive it,
+    they keep making a call to the function because they assume
+    we didn't receive the call.
     """
     try:
         logging.info("Start validating a call")
@@ -78,7 +82,7 @@ def call_validator(request):
             return Response("Unauthorized caller", status=200)
 
         if topic == "orders/paid":
-            if request_json['financial_status'] == "paid":
+            if request_json["financial_status"] == "paid":
                 # 1.3 Verify that Shopify's call contains email, fullname and SKU
                 # Only purchase call contains this data
                 email = request_json["email"]
@@ -97,31 +101,26 @@ def call_validator(request):
                     function_url = shopify_topics_handler["orders/paid"]
                     pool = Pool(1)
                     pool.apply_async(
-                        requests.post,
-                        args=[function_url],
-                        kwds={'json': request_json}
+                        requests.post, args=[function_url], kwds={"json": request_json}
                     )
                     logging.info("sent a request to {}".format(function_url))
                     logging.info("End of call validation")
                     return Response(
                         "Call is valid redirected to {}".format(function_url),
-                        status=200
-                        )
+                        status=200,
+                    )
             else:
                 return Response("Cant handle unpaid call", status=200)
         elif topic == "products/create" or topic == "products/update":
             function_url = shopify_topics_handler["products/create"]
             pool = Pool(1)
             pool.apply_async(
-                requests.post,
-                args=[function_url],
-                kwds={'json': request_json}
+                requests.post, args=[function_url], kwds={"json": request_json}
             )
             logging.info("sent a request to {}".format(function_url))
             logging.info("End of call validation")
             return Response(
-                "Call is valid redirected to {}".format(function_url),
-                status=200
+                "Call is valid redirected to {}".format(function_url), status=200
             )
         else:
             return Response("Invalid topic to handle", status=200)
