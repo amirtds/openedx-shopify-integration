@@ -97,11 +97,13 @@ def create_shopify_products(shopify_products):
         variants = shopify.Variant.find()
         # SKU in shopify is Course ID in OpenEDX
         skus = []
+        product_ids = {}
         number_created_products = 0
         created_products_list = []
         for variant in variants:
             # Fill SKUs list with all courses id that exist in shopify
             skus.append(variant.sku)
+            product_ids[variant.sku] = variant.product_id
         # 1.2 loop over shopify_products and create store products
         # shopify_products contains course metadata coming from OpenEDX
         for product in shopify_products:
@@ -153,8 +155,23 @@ def create_shopify_products(shopify_products):
                         date.today().strftime("%m-%d-%Y"),
                     ]
                 )
-            else:
-                continue
+            elif product["product_sku"] in skus:
+                existing_product = shopify.Product.find(
+                    product_ids[product["product_sku"]]
+                )
+                existing_product.title = product["product_title"]
+                existing_product.tags = product["product_tag"]
+                existing_image = shopify.Image.find_first(
+                    product_id=existing_product.id
+                )
+                if existing_image:
+                    existing_image.destroy()
+                new_image = shopify.Image()
+                new_image.src = product["product_image"]
+                existing_product.images = new_image
+                new_image.product_id = existing_product.id
+                image_saved = new_image.save()
+                existing_product.save()
         logging.info("{} product(s) created usccessfully".format(
             number_created_products
             )
@@ -165,7 +182,7 @@ def create_shopify_products(shopify_products):
             text = "Number of created products in shopify: {} ".format(
                 number_created_products
             )
-            header = ["Product Name", "Product SKU", "Tahoe URL", "Created AT"]
+            header = ["Product Name", "Product SKU", "Tahoe URL", "Created At"]
             fp = NamedTemporaryFile(
                 delete=False,
                 prefix="created_product_",
