@@ -201,7 +201,7 @@ def enroll_in_course(request):
     # 4.2 Make a call to enrollment API with email, course-id and enroll
     enrollment_info = {
         "action": "enroll",
-        "email_learners": "true",
+        "email_learners": "false",
         "courses": [sku],
         "identifiers": [email],
         "auto_enroll": "true",
