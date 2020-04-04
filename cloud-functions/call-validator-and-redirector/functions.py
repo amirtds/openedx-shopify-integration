@@ -83,7 +83,7 @@ def call_validator(request):
 
         if topic == "orders/paid":
             if request_json["financial_status"] == "paid":
-                # 1.3 Verify that Shopify's call contains email, fullname and SKU
+                # 1.3 Verify Shopify's call contains email, fullname and SKU
                 # Only purchase call contains this data
                 email = request_json["email"]
                 fullname = request_json["billing_address"]["name"]
@@ -92,16 +92,21 @@ def call_validator(request):
                     msg = "Bad request - Email or fullname or sku missing"
                     logging.info(request_json)
                     logging.error(msg)
-                    return Response("Email or fullname or sku missing", status=200)
+                    return Response(
+                        "Email or fullname or sku missing",
+                        status=200
+                    )
                 else:
-                    msg = "call from {} - {} for purchasing {} is valid".format(
+                    msg = "purchase call from {} - {} for {} is valid".format(
                         caller, email, sku
                     )
                     logging.info(msg)
                     function_url = shopify_topics_handler["orders/paid"]
                     pool = Pool(1)
                     pool.apply_async(
-                        requests.post, args=[function_url], kwds={"json": request_json}
+                        requests.post,
+                        args=[function_url],
+                        kwds={"json": request_json}
                     )
                     logging.info("sent a request to {}".format(function_url))
                     logging.info("End of call validation")
@@ -120,7 +125,8 @@ def call_validator(request):
             logging.info("sent a request to {}".format(function_url))
             logging.info("End of call validation")
             return Response(
-                "Call is valid redirected to {}".format(function_url), status=200
+                "Call is valid redirected to {}".format(function_url),
+                status=200
             )
         else:
             return Response("Invalid topic to handle", status=200)
