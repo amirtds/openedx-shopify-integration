@@ -12,14 +12,17 @@ import requests
 from google.cloud import error_reporting
 
 
-shopify_topics_handler = {
-    "orders/paid": "https://us-central1-appsembler-tahoe-0.cloudfunctions.net/test_successful_purchase_listener",
-    "products/create": "https://us-central1-appsembler-tahoe-0.cloudfunctions.net/test_shopify_product_validator",
-    "products/update": "https://us-central1-appsembler-tahoe-0.cloudfunctions.net/test_shopify_product_validator",
-}
 shopify_secret = environ.get("shopify_secret", "")
 shopify_store_url = environ.get("shopify_store_url", "")
 environment = environ.get("env", "")
+purchase_listerner_url = environ.get('purchase_listerner_url', '')
+product_validator_url = environ.get('product_validator_url', '')
+
+shopify_topics_handler = {
+    "orders/paid": purchase_listerner_url,
+    "products/create": product_validator_url,
+    "products/update": product_validator_url,
+}
 
 if environment == "prod":
     try:
