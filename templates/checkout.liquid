@@ -39,16 +39,41 @@
         vertical-align: middle;
     }
 </style>
+
 <div class="isa_info">
     <i class="fa fa-info-circle" style="float: left;"></i>
     {% assign order = checkout.order %}
     <div style="margin-left: 60px;">
-        <p style="font-size: 14px;;margin-bottom: 6px;"> Please check your email <span style="font-weight: 500;">{{ checkout.email }}</span> We sent you the instructions on how to access {{ order.line_items[0].product.title }} hosted <a style="text-decoration: underline;" href={{ order.line_items[0].product.tags[0] }} target="_blank">here.</a></p>
-        <p style="font-size: 14px;;margin-bottom: 6px;">If this is your first time on <a style="text-decoration: underline;" href={{ order.line_items[0].product.tags[0] }} target="_blank">{{ order.line_items[0].product.tags[0] }}</a> you should receive password reset instruction in your email.</p>
-        <p style="font-size: 14px;;margin-bottom: 6px;">You can <a style="text-decoration: underline;" href="{{ order.line_items[0].product.tags[0] }}/login" target="_blank">login</a> using:</p>
+        <p style="font-size: 14px;;margin-bottom: 6px;"> Please check your email to review your order confirmation and
+            If this is your first time, you should receive a password reset email to be able to access following
+            courses:</p>
+        <ul style="list-style-type:disc;margin-left: 25px;font-size: 14px;line-height: 1.4em; margin-bottom: 10px;">
+            {% for line_item in order.line_items %}
+            <li>
+                {{ line_item.product.title }} hosted <a style="text-decoration: underline;"
+                    href={{ line_item.product.tags[0] }} target="_blank"> here.</a>
+            </li>
+            {% endfor %}
+        </ul>
+        <p style="font-size: 14px;;margin-bottom: 6px;">To login you should visit:
+            <ul style="list-style-type:disc;margin-left: 25px;font-size: 14px;line-height: 1.4em; margin-bottom: 10px;">
+                {% assign last_url = "" %}
+                {% for line_item in order.line_items %}
+                    {% assign url = line_item.product.tags[0] %}
+                    {% if last_url != url %}
+                        <li>
+                            <a style="text-decoration: underline;" href="{{ line_item.product.tags[0] }}/login"
+                                target="_blank">{{ line_item.product.tags[0] }}</a>
+                        </li>
+                    {% endif %}
+                    {% assign last_url = url %}
+                {% endfor %}
+            </ul>
+        </p>
         <ul style="list-style-type:disc;margin-left: 25px;font-size: 14px;line-height: 1.4em;">
-            <li style=""><span style="font-weight: 500;">{{ checkout.email }}</span> as your username </li>
-            <li style=""> The password you chose during the password reset </li>
+            <p style="margin-left: -25px;">and use</p>
+            <li><span style="font-weight: 500;">{{ checkout.email }}</span> as your username </li>
+            <li> The password you chose during the password reset </li>
         </ul>
     </div>
 </div>
