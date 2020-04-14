@@ -60,7 +60,7 @@ def call_validator(request):
         logging.info("Start validating a call")
         # 1.1 Verify store signature
         request_json = request.get_json()
-        # request only contains non critical data
+        # logged request only contains non critical data
         logging.info(request_json)
         data = request.get_data()
         topic = request.headers.get("X-Shopify-Topic", "")
@@ -87,8 +87,9 @@ def call_validator(request):
                 # Only purchase call contains this data
                 email = request_json["email"]
                 fullname = request_json["billing_address"]["name"]
-                sku = request_json["line_items"][0]["sku"]
-                if not email or not fullname or not sku:
+                line_items = request_json["line_items"]
+                skus = [line_item["sku"] for line_item in line_items]
+                if not email or not fullname or not skus:
                     msg = "Bad request - Email or fullname or sku missing"
                     logging.info(request_json)
                     logging.error(msg)
@@ -98,7 +99,7 @@ def call_validator(request):
                     )
                 else:
                     msg = "purchase call from {} - {} for {} is valid".format(
-                        caller, email, sku
+                        caller, email, skus
                     )
                     logging.info(msg)
                     function_url = shopify_topics_handler["orders/paid"]
@@ -119,6 +120,7 @@ def call_validator(request):
         elif topic == "products/create" or topic == "products/update":
             function_url = shopify_topics_handler["products/create"]
             pool = Pool(1)
+            # 1.3 Async call to other function
             pool.apply_async(
                 requests.post, args=[function_url], kwds={"json": request_json}
             )
